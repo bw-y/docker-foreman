@@ -35,7 +35,7 @@
 ### 根据上述要求,命令如下
 
 ```
-docker run -itd --name=puppet --hostname=puppet.bw-y.com -e MCO_PASS=StlJT1Qk6cO6D2Aq -e PSK_PASS=lqtQ8Ci38HRSAXvY5fRVy7PZ -v /opt/docker/puppet_conf:/etc/puppet -v /opt/docker/puppet_ssl:/var/lib/puppet/ssl -v /opt/docker/foreman_db:/var/lib/postgresql/9.3/main -p 80:80 -p 443:443 -p 8140:8140 -p 8443:8443 -p 61613:61613 distribution.alauda.cn/hypersroot/docker-foreman:1.9.2.1
+docker run -itd --name=puppet --hostname=puppet.bw-y.com -e MCO_PASS=StlJT1Qk6cO6D2Aq -e PSK_PASS=lqtQ8Ci38HRSAXvY5fRVy7PZ -v /opt/docker/puppet_conf:/etc/puppet -v /opt/docker/puppet_ssl:/var/lib/puppet/ssl -v /opt/docker/foreman_db:/var/lib/postgresql/9.3/main -p 80:80 -p 443:443 -p 8140:8140 -p 8443:8443 -p 61613:61613 index.alauda.cn/hypersroot/docker-foreman:1.9.2.1
 ```
 
 ## 参数说明
