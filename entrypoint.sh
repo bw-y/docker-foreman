@@ -7,6 +7,7 @@ set -e
 : ${MCO_PASS:=mcopassword}
 : ${PSK_PASS:=mcopskstr}
 
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 puppet_dir="/etc/puppet"
 db_dir="/var/lib/postgresql/9.3/main"
 
@@ -35,31 +36,7 @@ plugin.yaml = /etc/mcollective/facts.yaml
 MCOCONF
 }
 
-
-ConfReset(){
-  local PATH="/usr/sbin:/usr/bin:/sbin:/bin"
-  local reset_files[0]="/etc/apache2/sites-available/05-foreman.conf"
-  local reset_files[1]="/etc/apache2/sites-available/05-foreman-ssl.conf"
-  local reset_files[2]="/etc/foreman/foreman-installer-answers.yaml"
-  local reset_files[3]="/etc/foreman/settings.yaml"
-  local reset_files[4]="/etc/foreman-proxy/settings.yml"
-  local reset_files[5]="/etc/foreman-proxy/settings.d/templates.yml"
-  local reset_files[6]="/etc/foreman-proxy/settings.d/puppet.yml"
-  local hn=$(hostname) ; local dn=$(facter domain)
-
-  for f in ${reset_files[@]};do
-    sed -i "s@foreman.bw-y.com@$hn@g" $f
-    sed -i "s@bw-y.com@$dn@g" $f
-  done
-
-  rsync -av "$puppet_dir".bak/ $puppet_dir/
-  rsync -av "$db_dir".bak/ $db_dir/
-  chown -R puppet:root /etc/puppet/
-  chown foreman-proxy:puppet /etc/puppet/autosign.conf
-
-  /usr/sbin/foreman-installer &> /dev/null || return 0
-}
-
+# 
 McoConfCheck(){
   sed -i "s@987654321@${MCO_PASS}@g" /usr/local/apache-activemq-5.11.1/conf/activemq.xml
   McoClientConf
@@ -68,35 +45,63 @@ McoConfCheck(){
   fi
 }
 
-ConfCheck(){
-  if [[ ! -f "$puppet_dir/node.rb" || ! -f "$db_dir/PG_VERSION" ]];then
-    ConfReset
+ConfReset(){
+  local hn=$(hostname -f) ; local dn=$(facter domain)
+  local old_hn=$(grep server_certname /etc/foreman/foreman-installer-answers.yaml|awk '{print $NF}')
+  local old_dn=$(grep srv_domain /etc/foreman/foreman-installer-answers.yaml|awk '{print $NF}')
+
+  if [[ $hn != $old_hn || $old_dn != $dn ]];then
+
+    local reset_files[0]="/etc/apache2/sites-available/05-foreman.conf"
+    local reset_files[1]="/etc/apache2/sites-available/05-foreman-ssl.conf"
+    local reset_files[2]="/etc/foreman/foreman-installer-answers.yaml"
+    local reset_files[3]="/etc/foreman/settings.yaml"
+    local reset_files[4]="/etc/foreman-proxy/settings.yml"
+    local reset_files[5]="/etc/foreman-proxy/settings.d/templates.yml"
+    local reset_files[6]="/etc/foreman-proxy/settings.d/puppet.yml"
+    local reset_files[7]="/etc/apache2/sites-available/25-puppet.conf"
+
+    for f in ${reset_files[@]};do
+      sed -i "s@$old_hn@$hn@g" $f
+      sed -i "s@$old_dn@$dn@g" $f
+    done
+  fi
+ 
+  if [[ ! -f "$puppet_dir/node.rb" ]];then
+    rsync -av "$puppet_dir".bak/ $puppet_dir/
+
+    chown -R puppet:root /etc/puppet/
+    chown foreman-proxy:puppet /etc/puppet/autosign.conf
+  fi
+  
+  if [[ ! -f "$db_dir/PG_VERSION" ]];then
+    rsync -av "$db_dir".bak/ $db_dir/
   fi
 }
 
+Reset_All_Conf(){
+  foreman-installer &> /dev/null || return 0
+}
+
+ConfCheck(){
+  if [[ ! -f "$puppet_dir/node.rb" || ! -f "$db_dir/PG_VERSION" ]];then
+    Reset_All_Conf
+  fi
+}
+
+ApacheRun(){
+   /etc/init.d/apache2 start &> /dev/null || Reset_All_Conf
+}
+
 runService(){
-  for nn in {1..10};do
-    if /etc/init.d/postgresql status &> /dev/null ;then
-      local aa=aa
-    else
-      /etc/init.d/postgresql start
-    fi
-    if /etc/init.d/apache2 status &> /dev/null ;then
-      local bb=aa
-    else
-      /etc/init.d/apache2 start
-    fi
-    if /etc/init.d/foreman-proxy status &> /dev/null ;then
-      local cc=aa
-    else
-      /etc/init.d/foreman-proxy start
-    fi
-    [[ $aa == 'aa' && $bb == 'aa' && $cc == 'aa' ]] && return 0
-  done
+  /etc/init.d/postgresql status &> /dev/null || /etc/init.d/postgresql start
+  /etc/init.d/apache2 status &> /dev/null || ApacheRun
+  /etc/init.d/foreman-proxy status &> /dev/null || /etc/init.d/foreman-proxy start
 }
 
 MainFunc(){
   McoConfCheck
+  ConfReset
   ConfCheck
   runService
   read
