@@ -23,6 +23,7 @@
 ## 使用说明
 
 ###　启动一个容器提供puppet server服务,要求如下:
+
 1. 证书名/主机名配置为: puppet.bw-y.com
 2. 配置Mcollective和ActiveMQ的密码为: StlJT1Qk6cO6D2Aq
 3. 配置Mcollective的psk密码为: lqtQ8Ci38HRSAXvY5fRVy7PZ
