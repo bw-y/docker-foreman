@@ -69,7 +69,7 @@ McoConfCheck(){
 }
 
 ConfCheck(){
-  if [[ ! -f "$puppet_dir/node.rb" && ! -f "$db_dir/PG_VERSION" ]];then
+  if [[ ! -f "$puppet_dir/node.rb" || ! -f "$db_dir/PG_VERSION" ]];then
     ConfReset
   fi
 }
