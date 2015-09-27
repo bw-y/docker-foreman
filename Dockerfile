@@ -1,4 +1,4 @@
-FROM index.alauda.cn/hypersroot/foreman:base
+FROM index.alauda.cn/hypersroot/foreman-base:1.9.2
 
 MAINTAINER "bw.y" <baowei.y@gmail.com>
 
