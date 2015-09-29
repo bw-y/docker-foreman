@@ -69,9 +69,6 @@ ConfReset(){
  
   if [[ ! -f "$puppet_dir/node.rb" ]];then
     rsync -av "$puppet_dir".bak/ $puppet_dir/
-
-    chown -R puppet:root /etc/puppet/
-    chown foreman-proxy:puppet /etc/puppet/autosign.conf
   fi
   
   if [[ ! -f "$db_dir/PG_VERSION" ]];then
@@ -99,10 +96,17 @@ runService(){
   /etc/init.d/foreman-proxy status &> /dev/null || /etc/init.d/foreman-proxy start
 }
 
+PresentChown(){
+  chown -R puppet:root /etc/puppet/ /usr/local/puppet_files/
+  chown foreman-proxy:puppet /etc/puppet/autosign.conf
+  chown -R postgres:postgres /var/lib/postgresql/9.3/main
+}
+
 MainFunc(){
   McoConfCheck
   ConfReset
   ConfCheck
+  PresentChown
   runService
   read
 }
