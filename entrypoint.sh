@@ -29,7 +29,7 @@ plugin.psk = ${PSK_PASS}
 
 direct_addressing = 1
 connector = rabbitmq
-plugin.rabbitmq.vhost = ${MQ_VHOST}
+plugin.rabbitmq.vhost = ${MCO_VHOST}
 plugin.rabbitmq.pool.size = 1
 plugin.rabbitmq.pool.1.host = ${MCO_HOST}
 plugin.rabbitmq.pool.1.port = ${MCO_PORT}
@@ -62,7 +62,7 @@ plugin.psk = ${PSK_PASS}
 
 direct_addressing = 1
 connector = rabbitmq
-plugin.rabbitmq.vhost = ${MQ_VHOST}
+plugin.rabbitmq.vhost = ${MCO_VHOST}
 plugin.rabbitmq.pool.size = 1
 plugin.rabbitmq.pool.1.host = ${MCO_HOST}
 plugin.rabbitmq.pool.1.port = ${MCO_PORT}
@@ -124,10 +124,10 @@ checkChown(){
 }
 
 runService(){
-  /etc/init.d/postgresql start
-  /etc/init.d/foreman-proxy start
-  /etc/init.d/apache2 start
-  /etc/init.d/mcollective start
+  /etc/init.d/postgresql start &> /dev/null
+  /etc/init.d/foreman-proxy start &> /dev/null
+  /etc/init.d/apache2 start &> /dev/null
+  /etc/init.d/mcollective start &> /dev/null
   [ ! -f $init_tag ] && touch $init_tag
   return 0
 }
@@ -153,16 +153,16 @@ checkHost(){
 }
 
 MainFunc(){
-  mcoSet
   if checkHost ;then
+    mcoSet
     confSet
     dbSet
     reInstall
     foreman-rake permissions:reset > $init_tag
+    cat $init_tag
   fi
   checkChown
   runService
-  cat $init_tag
   read
 }
 
