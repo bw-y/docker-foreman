@@ -67,7 +67,7 @@ docker run -itd --name=puppet --hostname=puppet.bw-y.com -p 80:80 -p 443:443 -p 
 
 ```
 1. 启动一个带管理页面的rabbitmq容器
-  # docker run -itd --name mq -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin -e RABBITMQ_DEFAULT_VHOST=/ -p 61613:61613 -p 15672:15672 index.alauda.cn/library/rabbitmq:3.6.0-managemen
+  # docker run -itd --name mq -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin -e RABBITMQ_DEFAULT_VHOST=/ -p 61613:61613 -p 15672:15672 index.alauda.cn/library/rabbitmq:3.6.0-management
 
 2. 进入容器,开启stomp插件
   # docker exec -it mq bash
