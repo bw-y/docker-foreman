@@ -17,9 +17,9 @@ RUN echo "deb http://deb.theforeman.org/ trusty nightly" > /etc/apt/sources.list
 
 RUN curl http://deb.theforeman.org/pubkey.gpg | apt-key add - && \
   wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb -P /tmp/ && \
-  dpkg -i /tmp/puppetlabs-release-trusty.deb && rm -f /tmp/puppetlabs-release-trusty.deb
+  dpkg -i /tmp/puppetlabs-release-trusty.deb && rm -f /tmp/puppetlabs-release-trusty.deb && apt-get update
 
-RUN apt-get update && apt-get -f install foreman foreman-installer foreman-pgsql \
+RUN apt-get -f install foreman foreman-installer foreman-pgsql \
   mcollective mcollective-client mcollective-common mcollective-puppet-agent \
   mcollective-puppet-client mcollective-puppet-common foreman-cli \
   ruby-foreman-setup ruby-hammer-cli-foreman postgresql-9.3 postgresql-client-9.3 \
