@@ -12,11 +12,11 @@ RUN mv /etc/localtime /etc/localtime.bak && ln -sv /usr/share/zoneinfo/Asia/Shan
 
 RUN echo "deb http://deb.theforeman.org/ trusty nightly" > /etc/apt/sources.list.d/foreman.list && \
   echo "deb http://deb.theforeman.org/ plugins nightly" >> /etc/apt/sources.list.d/foreman.list && \
-  apt-get -y install curl wget ca-certificates && \
-  curl http://deb.theforeman.org/pubkey.gpg | apt-key add - && \
+RUN apt-get -y install curl wget ca-certificates 
+RUN curl http://deb.theforeman.org/pubkey.gpg | apt-key add - && \
   wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb -P /tmp/ && \
-  dpkg -i /tmp/puppetlabs-release-trusty.deb && rm -f /tmp/puppetlabs-release-trusty.deb && \
-  apt-get update && apt-get -f install foreman foreman-installer foreman-pgsql \
+  dpkg -i /tmp/puppetlabs-release-trusty.deb && rm -f /tmp/puppetlabs-release-trusty.deb
+RUN apt-get update && apt-get -f install foreman foreman-installer foreman-pgsql \
   mcollective mcollective-client mcollective-common mcollective-puppet-agent \
   mcollective-puppet-client mcollective-puppet-common foreman-cli \
   ruby-foreman-setup ruby-hammer-cli-foreman postgresql-9.3 postgresql-client-9.3 \
