@@ -19,12 +19,12 @@ RUN curl http://deb.theforeman.org/pubkey.gpg | apt-key add - && \
   wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb -P /tmp/ && \
   dpkg -i /tmp/puppetlabs-release-trusty.deb && rm -f /tmp/puppetlabs-release-trusty.deb && apt-get update
 
-RUN apt-get -f install foreman foreman-installer foreman-pgsql \
+RUN apt-get install -f foreman foreman-installer foreman-pgsql \
   mcollective mcollective-client mcollective-common mcollective-puppet-agent \
   mcollective-puppet-client mcollective-puppet-common foreman-cli \
   ruby-foreman-setup ruby-hammer-cli-foreman postgresql-9.3 postgresql-client-9.3 \
   postgresql-client-common postgresql-common puppetmaster-common syslinux apache2 \
-  puppetmaster libapache2-mod-passenger tftpd-hpa puppetmaster
+  libapache2-mod-passenger tftpd-hpa puppetmaster
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod 755 /entrypoint.sh 
