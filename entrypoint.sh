@@ -7,15 +7,12 @@ set -e
 : ${MCO_USER:=mcollective}
 : ${MCO_PASS:=mcopassword}
 : ${PSK_PASS:=mcopskr}
-: ${INIT:=off}
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
-log_file="/root/run.log"
 init_tag="/etc/foreman/init-finished"
 
 mcoSet(){
-  [[ -f $init_tag ]] && return 0
   cat << CLIENT > /etc/mcollective/client.cfg
 main_collective = mcollective
 collectives = mcollective
@@ -83,44 +80,12 @@ plugin.yaml = /etc/mcollective/facts.yaml
 SERVER
 }
 
-confSet(){
-  [[ -f $init_tag ]] && return 0
-  local hn=$(hostname -f) ; local dn=$(facter domain)
-  local old_hn=$(grep server_certname /etc/foreman/foreman-installer-answers.yaml|awk '{print $NF}')
-  local old_dn=$(grep srv_domain /etc/foreman/foreman-installer-answers.yaml|awk '{print $NF}')
-
-  local reset_files[0]="/etc/apache2/sites-available/05-foreman.conf"
-  local reset_files[1]="/etc/apache2/sites-available/05-foreman-ssl.conf"
-  local reset_files[2]="/etc/foreman/foreman-installer-answers.yaml"
-  local reset_files[3]="/etc/foreman/settings.yaml"
-  local reset_files[4]="/etc/foreman-proxy/settings.yml"
-  local reset_files[5]="/etc/foreman-proxy/settings.d/templates.yml"
-  local reset_files[6]="/etc/foreman-proxy/settings.d/puppet.yml"
-  local reset_files[7]="/etc/apache2/sites-available/25-puppet.conf"
-
-  for f in ${reset_files[@]};do
-    sed -i "s@$old_hn@$hn@g" $f
-    sed -i "s@$old_dn@$dn@g" $f
-  done
-  
-  local puppet_dir="/etc/puppet"
-  local db_dir="/var/lib/postgresql/9.3/main"
-  if [[ ! -f "$puppet_dir/node.rb" ]];then
-    rsync -a "$puppet_dir".bak/ $puppet_dir/
-  fi
-  
-  if [[ ! -f "$db_dir/PG_VERSION" ]];then
-    rsync -a "$db_dir".bak/ $db_dir/
-  fi
-}
-
-
 checkChown(){
   local files_dir=/usr/local/puppet_files
-  [ -d $files_dir ] && chown -R puppet:root $files_dir
-  chown -R puppet:root /etc/puppet 
-  chown foreman-proxy:puppet /etc/puppet/autosign.conf
-  chown -R postgres:postgres /var/lib/postgresql
+  [ -e $files_dir ] && chown -R puppet:root $files_dir
+  [ -e /etc/puppet ] && chown -R puppet:root /etc/puppet 
+  [ -e /etc/puppet/autosign.conf ] && chown foreman-proxy:puppet /etc/puppet/autosign.conf
+  [ -e /var/lib/postgresql ] && chown -R postgres:postgres /var/lib/postgresql
 }
 
 runService(){
@@ -128,7 +93,6 @@ runService(){
   /etc/init.d/foreman-proxy start &> /dev/null
   /etc/init.d/apache2 start &> /dev/null
   /etc/init.d/mcollective start &> /dev/null
-  [ ! -f $init_tag ] && touch $init_tag
   return 0
 }
 
@@ -136,34 +100,19 @@ dbSet(){
   /etc/init.d/postgresql start
   su -l postgres -c 'psql -U postgres -c "drop database foreman"'
   su -l postgres -c 'psql -U postgres -c "create database foreman"'
-  foreman-rake db:migrate
-  foreman-rake db:seed
 }
 
-reInstall(){
-  foreman-installer &> /dev/null
-}
-
-checkHost(){
-  local hn=$(hostname -f)
-  local old_hn=$(grep server_certname /etc/foreman/foreman-installer-answers.yaml|awk '{print $NF}')
-  [[ ${INIT} == 'on' && $hn != $old_hn ]] && return 0
-  [[ $hn != $old_hn ]] && echo "hostname:($hn), find old hostname:($old_hn) with foreman-installer-answers.yaml" >> $log_file
-  return 1
-}
-
-MainFunc(){
-  if checkHost ;then
+firstRun(){
+  if [[ ! -f $init_tag ]];then
     mcoSet
-    confSet
     dbSet
-    reInstall
+    foreman-installer &> /dev/null
     foreman-rake permissions:reset > $init_tag
     cat $init_tag
   fi
-  checkChown
-  runService
-  read
 }
 
-MainFunc
+firstRun
+checkChown
+runService
+read
