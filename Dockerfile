@@ -5,9 +5,11 @@ MAINTAINER "bw.y" <baowei.y@gmail.com>
 ENV LANG "en_US.UTF-8"
 ENV LANGUAGE "en_US:en"
 
-RUN mv /etc/localtime /etc/localtime.bak && ln -sv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && mv /sbin/initctl /sbin/oldinitctl
-COPY initctl /sbin/initctl
-RUN chmod 755 /sbin/initctl
+RUN mv /etc/localtime /etc/localtime.bak && \
+  ln -sv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+  mv /sbin/initctl /sbin/oldinitctl && \
+  echo -e '#!/bin/bash\nif [[ $1 == "--version" ]];then\n  echo "initctl (upstart 1.12.1)"\nfi\n/sbin/oldinitctl "$@"' > /sbin/initctl && \
+  chmod 755 /sbin/initctl
 
 RUN apt-get -y install curl wget ca-certificates && apt-get update 
 

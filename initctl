@@ -1,5 +1,0 @@
-#!/bin/bash
-if [[ $1 == "--version" ]];then
-  echo "initctl (upstart 1.12.1)"
-fi
-/sbin/oldinitctl "$@"
