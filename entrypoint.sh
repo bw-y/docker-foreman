@@ -98,7 +98,6 @@ runService(){
 
 dbSet(){
   /etc/init.d/postgresql start
-  su -l postgres -c 'psql -U postgres -c "drop database foreman"'
   su -l postgres -c 'psql -U postgres -c "create database foreman"'
 }
 
