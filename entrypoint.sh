@@ -105,8 +105,7 @@ firstRun(){
   if [[ ! -f $init_tag ]];then
     mcoSet
     dbSet
-    foreman-installer &> /dev/null
-    foreman-rake permissions:reset > $init_tag
+    foreman-installer &> /dev/null && foreman-rake permissions:reset > $init_tag || foreman-rake permissions:reset > $init_tag
     cat $init_tag
   fi
 }
