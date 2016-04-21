@@ -38,6 +38,9 @@ docker run -itd --name=puppet --hostname=puppet.bw-y.com -p 80:80 -p 443:443 -p 
 ### `--hostname`
 [必选项] 由于puppet/foreman需要依赖一个可以解析的主机名用以配置证书相关,因此,在启动docker时,此参数务必加上,此参数会将配置的域名自动解析到容器对应的ip  默认值: 空
 
+### `WEB_PASS`
+[可选项] 初始化容器时,foreman登录页面管理员(admin)对应的密码。  默认值: admin
+
 ### `MCO_VHOST`
 [可选项] 用于在MCollective的(`/etc/mcollective/client.cfg`)中设置RabbitMQ的vhost的配置. 默认值: /mcollective
 

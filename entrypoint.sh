@@ -7,6 +7,7 @@ set -e
 : ${MCO_USER:=mcollective}
 : ${MCO_PASS:=mcopassword}
 : ${PSK_PASS:=mcopskr}
+: ${WEB_PASS:=admin}
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
@@ -84,6 +85,7 @@ checkChown(){
   local files_dir=/usr/local/puppet_files
   [ -e $files_dir ] && chown -R puppet:root $files_dir
   [ -e /etc/puppet ] && chown -R puppet:root /etc/puppet 
+  [ -e /var/lib/puppet ] && chown -R puppet:puppet /var/lib/puppet
   [ -e /etc/puppet/autosign.conf ] && chown foreman-proxy:puppet /etc/puppet/autosign.conf
   [ -e /var/lib/postgresql ] && chown -R postgres:postgres /var/lib/postgresql
 }
@@ -101,11 +103,15 @@ dbSet(){
   su -l postgres -c 'psql -U postgres -c "create database foreman"'
 }
 
+initTag(){
+  echo "user: admin, password: ${WEB_PASS}" > $init_tag
+}
+
 firstRun(){
   if [[ ! -f $init_tag ]];then
     mcoSet
     dbSet
-    foreman-installer &> /dev/null && foreman-rake permissions:reset > $init_tag || foreman-rake permissions:reset > $init_tag
+    foreman-installer --enable-foreman-plugin-puppetdb --enable-foreman-compute-libvirt --puppet-show-diff=true --foreman-puppetrun=true --foreman-proxy-puppetrun-provider=mcollective --foreman-admin-password=${WEB_PASS} &> /dev/null && initTag
     cat $init_tag
   fi
 }
